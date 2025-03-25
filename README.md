@@ -9,3 +9,8 @@ The table now includes additional columns for memory percentage, priority, and C
 Error handling is enhanced with dialog messages, and the terminateProcess method now includes a confirmation dialog and success/failure feedback.
 Revision 3:- The updated code retains the core functionality —real-time process monitoring with a GUI, table display, and CPU graph—while introducing refinements primarily in the CustomGraphPanel class.
 The key change is in the CPU usage graph, where the paintComponent method now includes a wider graph (850 pixels), grid lines at 20% intervals, and percentage labels (0% to 100%), improving readability. Other functions, such as updateTable, terminateProcess, and restartProcess, remain unchanged, maintaining their enhanced features.
+revision 4:- 
+The CustomGraphPanel class adds a legend (a blue square labeled "System CPU Usage") and adjusts the graph’s scaling by using graphWidth (850 pixels) and graphHeight (200 pixels) for better proportionality, replacing the hardcoded 600 and 2x scaling.
+The ProcessInfo class now explicitly includes the priority field in its constructor, aligning with its usage.
+The startUpdates method removes an extra updateTable() call outside the timer, streamlining initialization.
+Graph axes and labels are repositioned using leftMargin and bottomMargin variables consistently, and the CPU usage line calculation uses dynamic scaling (graphHeight / 100) instead of a fixed multiplier.
