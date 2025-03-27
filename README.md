@@ -17,3 +17,6 @@ Graph axes and labels are repositioned using leftMargin and bottomMargin variabl
 revision 5:-
 Better Parsing: Strips .exe from Windows process names for cleaner display.
 Windows CPU Estimation: Added a basic CPU% approximation using wmic (still limited but better than 0.0).
+revision 6:-
+Refined CPU Trend: Adjusted thresholds (e.g., ±2% and ±10%) and added "High" indicators for significant changes; uses "≈" for stable and "New" for new processes.
+Selection Stability: Ensures single-selection mode to prevent multi-row confusion.
