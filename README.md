@@ -14,3 +14,6 @@ The CustomGraphPanel class adds a legend (a blue square labeled "System CPU Usag
 The ProcessInfo class now explicitly includes the priority field in its constructor, aligning with its usage.
 The startUpdates method removes an extra updateTable() call outside the timer, streamlining initialization.
 Graph axes and labels are repositioned using leftMargin and bottomMargin variables consistently, and the CPU usage line calculation uses dynamic scaling (graphHeight / 100) instead of a fixed multiplier.
+revision 5:-
+Better Parsing: Strips .exe from Windows process names for cleaner display.
+Windows CPU Estimation: Added a basic CPU% approximation using wmic (still limited but better than 0.0).
