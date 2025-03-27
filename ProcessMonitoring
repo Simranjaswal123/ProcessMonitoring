@@ -225,24 +225,26 @@ public class ProcessMonitorDashboard {
         if (selectedRow >= 0) {
             int pid = (Integer) tableModel.getValueAt(table.convertRowIndexToModel(selectedRow), 0);
             String name = (String) tableModel.getValueAt(table.convertRowIndexToModel(selectedRow), 1);
-            int confirm = JOptionPane.showConfirmDialog(frame,
-                    "Are you sure you want to terminate " + name + " (PID: " + pid + ")?",
-                    "Confirm Termination", JOptionPane.YES_NO_OPTION);
+            String state = (String) tableModel.getValueAt(table.convertRowIndexToModel(selectedRow), 2);
+            int confirm = JOptionPane.showConfirmDialog(frame, 
+                String.format("Terminate %s (PID: %d, State: %s)?\nThis action cannot be undone.", name, pid, state), 
+                "Confirm Termination", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    String command = System.getProperty("os.name").toLowerCase().contains("windows")
-                            ? "taskkill /PID " + pid + " /F"
-                            : "kill -9 " + pid;
+                    String os = System.getProperty("os.name").toLowerCase();
+                    String[] command = os.contains("windows") 
+                        ? new String[]{"cmd.exe", "/c", "taskkill /PID " + pid + " /F"} 
+                        : new String[]{"kill", "-9", String.valueOf(pid)};
                     Process p = Runtime.getRuntime().exec(command);
-                    p.waitFor();
-                    if (p.exitValue() == 0) {
-                        JOptionPane.showMessageDialog(frame, "Process " + pid + " terminated.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    } else {
-                        JOptionPane.showMessageDialog(frame, "Failed to terminate process " + pid + ".", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
+                    int exitCode = p.waitFor();
+                    String message = exitCode == 0 ? "Process " + pid + " terminated successfully." 
+                        : "Failed to terminate process " + pid + " (Exit code: " + exitCode + ").";
+                    JOptionPane.showMessageDialog(frame, message, exitCode == 0 ? "Success" : "Error", 
+                        exitCode == 0 ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
                     updateTable();
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(frame, "Error terminating process " + pid + ": " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "Error terminating process " + pid + ": " + e.getMessage(), 
+                        "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } else {
@@ -255,30 +257,42 @@ public class ProcessMonitorDashboard {
         if (selectedRow >= 0) {
             int pid = (Integer) tableModel.getValueAt(table.convertRowIndexToModel(selectedRow), 0);
             String name = (String) tableModel.getValueAt(table.convertRowIndexToModel(selectedRow), 1);
-            int confirm = JOptionPane.showConfirmDialog(frame,
-                    "Restart " + name + " (PID: " + pid + ")? This will terminate and attempt to relaunch.",
-                    "Confirm Restart", JOptionPane.YES_NO_OPTION);
+            int confirm = JOptionPane.showConfirmDialog(frame, 
+                String.format("Restart %s (PID: %d)?\nThis will terminate and attempt to relaunch the process.", name, pid), 
+                "Confirm Restart", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
                     String os = System.getProperty("os.name").toLowerCase();
-                    String killCommand = os.contains("windows") ? "taskkill /PID " + pid + " /F" : "kill -9 " + pid;
+                    String[] killCommand = os.contains("windows") 
+                        ? new String[]{"cmd.exe", "/c", "taskkill /PID " + pid + " /F"} 
+                        : new String[]{"kill", "-9", String.valueOf(pid)};
                     Process killProc = Runtime.getRuntime().exec(killCommand);
-                    killProc.waitFor();
+                    int killExit = killProc.waitFor();
 
-                    // Basic restart attempt (assumes process is an executable in PATH)
-                    String restartCommand = os.contains("windows") ? "start " + name : name;
-                    Runtime.getRuntime().exec(restartCommand);
-                    JOptionPane.showMessageDialog(frame, "Restart attempt initiated for " + name + ".", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    if (killExit == 0) {
+                        String[] restartCommand = os.contains("windows") 
+                            ? new String[]{"cmd.exe", "/c", "start " + name} 
+                            : new String[]{name};
+                        Process restartProc = Runtime.getRuntime().exec(restartCommand);
+                        int restartExit = restartProc.waitFor(2, java.util.concurrent.TimeUnit.SECONDS) ? restartProc.exitValue() : -1;
+                        String message = restartExit == 0 ? "Process " + name + " restarted successfully." 
+                            : "Process " + pid + " terminated, but restart may have failed.";
+                        JOptionPane.showMessageDialog(frame, message, "Restart Result", 
+                            restartExit == 0 ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(frame, "Failed to terminate process " + pid + " for restart.", 
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    }
                     updateTable();
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(frame, "Error restarting process " + pid + ": " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "Error restarting process " + pid + ": " + e.getMessage(), 
+                        "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } else {
             JOptionPane.showMessageDialog(frame, "Please select a process to restart.", "Warning", JOptionPane.WARNING_MESSAGE);
         }
     }
-
     private void sortTableByCPU() {
         sorter.setSortKeys(List.of(new RowSorter.SortKey(3, SortOrder.DESCENDING)));
         sorter.sort();
