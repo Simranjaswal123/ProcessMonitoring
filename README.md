@@ -20,3 +20,10 @@ Windows CPU Estimation: Added a basic CPU% approximation using wmic (still limit
 revision 6:-
 Refined CPU Trend: Adjusted thresholds (e.g., ±2% and ±10%) and added "High" indicators for significant changes; uses "≈" for stable and "New" for new processes.
 Selection Stability: Ensures single-selection mode to prevent multi-row confusion.
+Revision 7:-
+Termination (terminateProcess):
+Detailed Confirmation: Shows process name, PID, and state in the dialog for better context.
+Robust Execution: Uses command arrays for Runtime.exec() to avoid shell parsing issues; reports exit codes for precise feedback.
+Restart (restartProcess):
+Improved Reliability: Separates kill and restart steps with exit code checks; adds a timeout for restart attempts.
+Detailed Feedback: Differentiates between termination success and restart outcome in the dialog.
